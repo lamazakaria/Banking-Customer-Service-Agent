@@ -17,9 +17,8 @@ The Banking Chatbot API is an AI-powered banking assistant featuring multi-agent
 2. [Multi-Agent System](#multi-agent-system)
 3. [Authentication](#authentication)
 4. [API Endpoints](#api-endpoints)
-5. [Frontend Integration](#frontend-integration)
-6. [Data Models](#data-models)
-7. [Error Handling](#error-handling)
+5. [Data Models](#data-models)
+6. [Error Handling](#error-handling)
 
 
 ---
