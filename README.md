@@ -13,12 +13,11 @@ The Banking Chatbot API is an AI-powered banking assistant featuring multi-agent
 
 ## Table of Contents
 
-1. [Architecture Overview](#architecture-overview)
-2. [Multi-Agent System](#multi-agent-system)
-3. [Authentication](#authentication)
-4. [API Endpoints](#api-endpoints)
-5. [Data Models](#data-models)
-6. [Error Handling](#error-handling)
+1. [Multi-Agent System](#multi-agent-system)
+2. [Authentication](#authentication)
+3. [API Endpoints](#api-endpoints)
+4. [Data Models](#data-models)
+5. [Error Handling](#error-handling)
 
 
 ---
@@ -26,7 +25,7 @@ The Banking Chatbot API is an AI-powered banking assistant featuring multi-agent
 
 ### Technology Stack
 
-- **Backend Framework:** FastAPI (Python 3.8+)
+- **Backend Framework:** FastAPI (Python 3.11+)
 - **Agent Framework:** Google ADK (Agent Development Kit)
 - **LLM:** Google Gemini 2.5 Flash
 - **Database:** MongoDB (NoSQL)
@@ -349,39 +348,6 @@ Content-Type: multipart/form-data
 
 ---
 
-#### POST `/api/chat/tts`
-
-Convert text response to speech audio.
-
-**Headers:**
-```
-Authorization: Bearer <token>
-Content-Type: application/json
-```
-
-**Request Body:**
-```json
-{
-  "text": "Your account balance is $5,432.10",
-  "voice": "nova",
-  "language": "en-US"
-}
-```
-
-**Available Voices:**
-- OpenAI: `alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer`
-- Google: `en-US-Standard-A` through `en-US-Standard-J`
-
-**Response:** `200 OK`
-- Content-Type: `audio/mpeg`
-- Returns audio stream (MP3 format)
-
-**Errors:**
-- `401` - Invalid or expired token
-- `500` - TTS processing error
-
----
-
 #### GET `/api/chat/history`
 
 Retrieve chat history for authenticated user.
@@ -546,28 +512,6 @@ Get current STT/TTS provider configuration.
 }
 ```
 
-### Retry Logic
-
-```javascript
-async function retryRequest(fn, maxRetries = 3) {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await fn();
-    } catch (error) {
-      if (i === maxRetries - 1) throw error;
-      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-    }
-  }
-}
-
-// Usage
-const response = await retryRequest(() => 
-  client.sendTextMessage('What is my balance?')
-);
-```
-
----
-
 
 ### Installation
 
@@ -590,18 +534,6 @@ python mcp_server.py
 # Run the application
 cd ..
 python main.py
-```
-
-### Production Deployment
-
-#### Using Gunicorn (HTTPS)
-```bash
-gunicorn main:app \
-  --workers 4 \
-  --worker-class uvicorn.workers.UvicornWorker \
-  --bind 0.0.0.0:443 \
-  --keyfile=/path/to/key.pem \
-  --certfile=/path/to/cert.pem
 ```
 
 
