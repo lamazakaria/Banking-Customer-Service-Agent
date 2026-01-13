@@ -20,8 +20,7 @@ The Banking Chatbot API is an AI-powered banking assistant featuring multi-agent
 5. [Frontend Integration](#frontend-integration)
 6. [Data Models](#data-models)
 7. [Error Handling](#error-handling)
-8. [Setup & Configuration](#setup--configuration)
-9. [Security & HTTPS](#security--https)
+
 
 ---
 
@@ -37,7 +36,7 @@ The Banking Chatbot API is an AI-powered banking assistant featuring multi-agent
 - **Voice Processing:** 
   - STT: Google Gemini
 - **Frontend:** HTML5, CSS3, JavaScript (Vanilla/Framework)
-- **Security:** HTTPS/TLS, bcrypt password hashing
+- **Security:** bcrypt password hashing
 
 ---
 
@@ -441,290 +440,6 @@ Get current STT/TTS provider configuration.
 
 ---
 
-## Frontend Integration
-
-### HTML/CSS/JavaScript Client
-
-#### Project Structure
-```
-frontend/
-├── index.html
-├── css/
-│   ├── main.css
-│   ├── chat.css
-│   └── auth.css
-├── js/
-│   ├── app.js
-│   ├── auth.js
-│   ├── chat.js
-│   └── voice.js
-└── assets/
-    ├── images/
-    └── icons/
-```
-
-#### Key CSS Classes
-
-**Authentication Pages:**
-```css
-.auth-container {
-  max-width: 400px;
-  margin: 50px auto;
-  padding: 30px;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.auth-input {
-  padding: 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 14px;
-}
-
-.auth-button {
-  padding: 12px;
-  background: #1976d2;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-}
-```
-
-**Chat Interface:**
-```css
-.chat-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.messages-area {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-  background: #f5f5f5;
-}
-
-.message {
-  margin-bottom: 15px;
-  padding: 12px 16px;
-  border-radius: 12px;
-  max-width: 70%;
-}
-
-.message-user {
-  background: #1976d2;
-  color: white;
-  margin-left: auto;
-  text-align: right;
-}
-
-.message-assistant {
-  background: white;
-  color: #333;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.input-area {
-  display: flex;
-  gap: 10px;
-  padding: 20px;
-  background: white;
-  border-top: 1px solid #e0e0e0;
-}
-
-.voice-button {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: #d32f2f;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-.voice-button.recording {
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-}
-```
-
-#### JavaScript API Client
-
-```javascript
-// API Client Configuration
-const API_BASE_URL = 'https://your-domain.com/api';
-
-class BankingAPIClient {
-  constructor() {
-    this.token = localStorage.getItem('auth_token');
-    this.customerId = localStorage.getItem('customer_id');
-  }
-
-  // Authentication
-  async login(customerId, password) {
-    const response = await fetch(`${API_BASE_URL}/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ customer_id: customerId, password })
-    });
-    
-    if (!response.ok) throw new Error('Login failed');
-    
-    const data = await response.json();
-    this.token = data.access_token;
-    this.customerId = data.customer_id;
-    
-    localStorage.setItem('auth_token', this.token);
-    localStorage.setItem('customer_id', this.customerId);
-    
-    return data;
-  }
-
-  async signup(customerId, password, name, email, phone) {
-    const response = await fetch(`${API_BASE_URL}/signup`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        customer_id: customerId, 
-        password, 
-        name, 
-        email, 
-        phone 
-      })
-    });
-    
-    if (!response.ok) throw new Error('Signup failed');
-    return await response.json();
-  }
-
-  // Chat
-  async sendTextMessage(query) {
-    const response = await fetch(`${API_BASE_URL}/chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.token}`
-      },
-      body: JSON.stringify({ 
-        query, 
-        user_id: this.customerId 
-      })
-    });
-    
-    if (!response.ok) throw new Error('Chat request failed');
-    return await response.json();
-  }
-
-  async sendVoiceMessage(audioBlob) {
-    const formData = new FormData();
-    formData.append('audio', audioBlob, 'recording.webm');
-    formData.append('user_id', this.customerId);
-
-    const response = await fetch(`${API_BASE_URL}/chat/voice`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.token}`
-      },
-      body: formData
-    });
-    
-    if (!response.ok) throw new Error('Voice request failed');
-    return await response.json();
-  }
-
-  async textToSpeech(text, voice = 'nova') {
-    const response = await fetch(`${API_BASE_URL}/chat/tts`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.token}`
-      },
-      body: JSON.stringify({ text, voice, language: 'en-US' })
-    });
-    
-    if (!response.ok) throw new Error('TTS request failed');
-    return await response.blob();
-  }
-
-  async getChatHistory(limit = 50) {
-    const response = await fetch(
-      `${API_BASE_URL}/chat/history?limit=${limit}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${this.token}`
-        }
-      }
-    );
-    
-    if (!response.ok) throw new Error('History request failed');
-    return await response.json();
-  }
-}
-
-// Usage Example
-const client = new BankingAPIClient();
-
-// Login
-await client.login('CUST001', 'password123');
-
-// Send message
-const response = await client.sendTextMessage('What is my balance?');
-console.log(response.response);
-
-// Voice recording
-const mediaRecorder = new MediaRecorder(stream);
-const chunks = [];
-mediaRecorder.ondataavailable = e => chunks.push(e.data);
-mediaRecorder.onstop = async () => {
-  const blob = new Blob(chunks, { type: 'audio/webm' });
-  const result = await client.sendVoiceMessage(blob);
-  console.log(result.response);
-};
-```
-
-#### WebSocket Support (Future Enhancement)
-
-For real-time streaming responses:
-
-```javascript
-const ws = new WebSocket('wss://your-domain.com/ws/chat');
-
-ws.onopen = () => {
-  ws.send(JSON.stringify({
-    token: client.token,
-    query: 'What is my balance?'
-  }));
-};
-
-ws.onmessage = (event) => {
-  const data = JSON.parse(event.data);
-  if (data.type === 'agent_update') {
-    console.log(`Agent: ${data.agent_name}`);
-  } else if (data.type === 'response_chunk') {
-    appendToUI(data.text);
-  }
-};
-```
-
----
-
 ## Data Models
 
 ### UserSignup
@@ -771,14 +486,6 @@ ws.onmessage = (event) => {
 }
 ```
 
-### TTSRequest
-```typescript
-{
-  text: string;          // Text to convert to speech
-  voice?: string;        // Voice name (default: "nova")
-  language: string;      // Language code (default: "en-US")
-}
-```
 
 ### ChatHistory
 ```typescript
@@ -862,47 +569,6 @@ const response = await retryRequest(() =>
 
 ---
 
-## Setup & Configuration
-
-### Environment Variables
-
-Create a `.env` file in the project root:
-
-```bash
-# Security
-SECRET_KEY=your-secret-key-change-in-production-min-32-chars
-
-# Database
-MONGODB_URL=mongodb://127.0.0.1:27017
-DATABASE_NAME=banking_db
-
-# API Keys
-GOOGLE_API_KEY=your-google-api-key
-VOICE_GOOGLE_API_KEY=your-google-voice-api-key
-WHISPER_API_KEY=your-openai-api-key
-
-# Service Providers
-STT_PROVIDER=google              # Options: openai, google, azure
-TTS_PROVIDER=openai              # Options: openai, google, azure
-
-# Token Configuration
-ACCESS_TOKEN_EXPIRE_MINUTES=60
-ALGORITHM=HS256
-
-# Multi-Agent Configuration
-APP_NAME=banking_chatbot
-MODEL_NAME=gemini-2.5-flash
-TEMPERATURE=0.3
-
-# Vector Database
-QDRANT_HOST=localhost
-QDRANT_PORT=6333
-QDRANT_COLLECTION=bank_products_collection
-
-# HTTPS Configuration (Production)
-SSL_CERT_PATH=/path/to/cert.pem
-SSL_KEY_PATH=/path/to/key.pem
-```
 
 ### Installation
 
@@ -918,17 +584,10 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Install frontend dependencies (if using build tools)
-cd frontend
-npm install
-npm run build
+# Run MCP Server
 
-# Start MongoDB
-mongod --dbpath /path/to/data
-
-# Start Qdrant
-docker run -p 6333:6333 qdrant/qdrant
-
+python mcp_server.py
+```
 # Run the application
 cd ..
 python main.py
@@ -946,67 +605,6 @@ gunicorn main:app \
   --certfile=/path/to/cert.pem
 ```
 
-#### Using Nginx (Reverse Proxy)
-```nginx
-server {
-    listen 443 ssl http2;
-    server_name your-domain.com;
-
-    ssl_certificate /path/to/cert.pem;
-    ssl_certificate_key /path/to/key.pem;
-
-    location / {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /ws {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-}
-```
-
-### Interactive API Documentation
-
-Once running, access:
-- **Swagger UI:** `https://your-domain.com/docs`
-- **ReDoc:** `https://your-domain.com/redoc`
-
----
-
-## Security & HTTPS
-
-### HTTPS Setup
-
-#### Development (Self-Signed Certificate)
-```bash
-# Generate self-signed certificate
-openssl req -x509 -newkey rsa:4096 \
-  -keyout key.pem -out cert.pem \
-  -days 365 -nodes
-
-# Run with HTTPS
-uvicorn main:app --host 0.0.0.0 --port 443 \
-  --ssl-keyfile=key.pem --ssl-certfile=cert.pem
-```
-
-#### Production (Let's Encrypt)
-```bash
-# Install Certbot
-sudo apt install certbot python3-certbot-nginx
-
-# Obtain certificate
-sudo certbot --nginx -d your-domain.com
-
-# Auto-renewal
-sudo certbot renew --dry-run
-```
 
 ### Security Best Practices
 
@@ -1020,12 +618,8 @@ sudo certbot renew --dry-run
    - Stored securely in httpOnly cookies (recommended) or localStorage
    - Refresh token mechanism for long sessions
 
-3. **HTTPS/TLS**
-   - TLS 1.3 minimum
-   - Strong cipher suites
-   - HSTS headers enabled
 
-4. **CORS Configuration**
+3. **CORS Configuration**
    ```python
    app.add_middleware(
        CORSMiddleware,
